@@ -24,8 +24,6 @@ namespace ObrazkyJakCyp.Patches
 
                     Utils.ApplyTextureToPainting(obj);
                 }
-
-            Plugin.logger.LogInfo("Just applied images to synced items!");
         }
 
         [HarmonyPatch(typeof(RoundManager), "GenerateNewLevelClientRpc")]
@@ -33,7 +31,6 @@ namespace ObrazkyJakCyp.Patches
         private static void OnGenerateNewLevel(int randomSeed)
         {
             Globals.GRandom = new Random(randomSeed + 300);
-            Plugin.logger.LogInfo("Just initialized a new random!");
         }
     }
 }

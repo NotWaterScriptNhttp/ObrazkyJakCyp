@@ -15,7 +15,6 @@ namespace ObrazkyJakCyp.Patches
                 return;
 
             Globals.PaintingCache.Clear();
-            Plugin.logger.LogInfo("Just cleared data!");
         }
     }
 }
