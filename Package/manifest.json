@@ -1,7 +1,9 @@
 {
     "name": "ObrazkyJakCyp",
-    "version_number": "1.0.0",
+    "version_number": "1.0.1",
     "website_url": "https://github.com/NotWaterScriptNhttp/ObrazkyJakCyp",
     "description": "Custom paintings made simple",
-    "dependencies": []
+    "dependencies": [
+        "BepInEx-BepInExPack-5.4.2305"
+    ]
 }
