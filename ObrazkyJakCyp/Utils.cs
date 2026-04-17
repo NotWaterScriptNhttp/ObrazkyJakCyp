@@ -62,6 +62,7 @@ namespace ObrazkyJakCyp
                 return; // Validity check passed, but this didn't so we just exit
             }
 
+            // Flip the texture by 270°
             if (tex.width > tex.height)
             {
                 var pixels = tex.GetPixels();
@@ -69,7 +70,7 @@ namespace ObrazkyJakCyp
 
                 for (int x = 0; x < tex.width; x++)
                     for (int y = 0; y < tex.height; y++)
-                        tpixles[(tex.width - x - 1) * tex.height + y] = pixels[y * tex.width + x];
+                        tpixles[x * tex.height + y] = pixels[y * tex.width + x];
 
                 tex.Reinitialize(tex.height, tex.width);
                 tex.SetPixels(tpixles);
@@ -85,6 +86,7 @@ namespace ObrazkyJakCyp
             var tempPixels = Globals.PaintingTemplate.GetPixels();
             loadedTex = new Texture2D(Globals.PaintingTemplate.width, Globals.PaintingTemplate.height, Globals.PaintingTemplate.format, false);
 
+            // Replace placeholder with randomly picked image
             for (int x = 0; x < tex.width; x++)
                 for (int y = 0; y < tex.height; y++)
                     tempPixels[_startPoint.x + x + ((loadedTex.height - _endPoint.y) + y) * loadedTex.width] = texPixels[x + y * tex.width];
@@ -92,7 +94,7 @@ namespace ObrazkyJakCyp
             loadedTex.SetPixels(tempPixels);
             loadedTex.Apply();
 
-            GameObject.DestroyImmediate(tex);
+            GameObject.DestroyImmediate(tex); // Resized image isn't used anymore
             Globals.LoadedImages[texFile] = loadedTex;
 
         CREATE_MAT:
