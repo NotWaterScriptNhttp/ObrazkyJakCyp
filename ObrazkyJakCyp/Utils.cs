@@ -48,7 +48,7 @@ namespace ObrazkyJakCyp
                 goto APPLY_TEXTURE;
 
             var texFile = GetRandomImage();
-            if (texFile == null)
+            if (texFile == null) // No image was provided by the user
                 return;
 
             if (Globals.LoadedImages.TryGetValue(texFile, out var loadedTex) && loadedTex != null)
@@ -62,39 +62,44 @@ namespace ObrazkyJakCyp
                 return; // Validity check passed, but this didn't so we just exit
             }
 
-            // Flip the texture by 270°
-            if (tex.width > tex.height)
+            // Check for '_tex' suffix, that tells us the image is a texture, the user provided
+            if (!Path.GetFileNameWithoutExtension(texFile).EndsWith("_tex"))
             {
-                var pixels = tex.GetPixels();
-                var tpixles = new Color[pixels.Length];
+                // Flip the texture by 270°
+                if (tex.width > tex.height)
+                {
+                    var pixels = tex.GetPixels();
+                    var tpixles = new Color[pixels.Length];
 
+                    for (int x = 0; x < tex.width; x++)
+                        for (int y = 0; y < tex.height; y++)
+                            tpixles[x * tex.height + y] = pixels[y * tex.width + x];
+
+                    tex.Reinitialize(tex.height, tex.width);
+                    tex.SetPixels(tpixles);
+                    tex.Apply();
+                }
+
+                // Resize the image
+                var resized = ResizeTexture(tex, _targetSize.x, _targetSize.y);
+                GameObject.DestroyImmediate(tex);
+                tex = resized;
+
+                var texPixels = tex.GetPixels();
+                var tempPixels = Globals.PaintingTemplate.GetPixels();
+                loadedTex = new Texture2D(Globals.PaintingTemplate.width, Globals.PaintingTemplate.height, Globals.PaintingTemplate.format, false);
+
+                // Replace placeholder with randomly picked image
                 for (int x = 0; x < tex.width; x++)
                     for (int y = 0; y < tex.height; y++)
-                        tpixles[x * tex.height + y] = pixels[y * tex.width + x];
+                        tempPixels[_startPoint.x + x + ((loadedTex.height - _endPoint.y) + y) * loadedTex.width] = texPixels[x + y * tex.width];
 
-                tex.Reinitialize(tex.height, tex.width);
-                tex.SetPixels(tpixles);
-                tex.Apply();
+                loadedTex.SetPixels(tempPixels);
+                loadedTex.Apply();
+
+                GameObject.DestroyImmediate(tex); // Resized image isn't used anymore
             }
-
-            // Resize the image
-            var resized = ResizeTexture(tex, _targetSize.x, _targetSize.y);
-            GameObject.DestroyImmediate(tex);
-            tex = resized;
-
-            var texPixels = tex.GetPixels();
-            var tempPixels = Globals.PaintingTemplate.GetPixels();
-            loadedTex = new Texture2D(Globals.PaintingTemplate.width, Globals.PaintingTemplate.height, Globals.PaintingTemplate.format, false);
-
-            // Replace placeholder with randomly picked image
-            for (int x = 0; x < tex.width; x++)
-                for (int y = 0; y < tex.height; y++)
-                    tempPixels[_startPoint.x + x + ((loadedTex.height - _endPoint.y) + y) * loadedTex.width] = texPixels[x + y * tex.width];
-
-            loadedTex.SetPixels(tempPixels);
-            loadedTex.Apply();
-
-            GameObject.DestroyImmediate(tex); // Resized image isn't used anymore
+            else loadedTex = tex;
             Globals.LoadedImages[texFile] = loadedTex;
 
         CREATE_MAT:
