@@ -8,3 +8,4 @@ Known limits: Some file types are not supported like webp.
 
 # Special thanks
 - Boniato for [Custom Paintings](https://github.com/BoniatoRelleno/CustomPaintings)
+- StbSharp for [StbImageSharp](https://github.com/StbSharp/StbImageSharp)
