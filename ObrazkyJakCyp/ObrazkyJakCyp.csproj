@@ -47,8 +47,12 @@
       <HintPath>..\References\Facepunch.Steamworks.Win64.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="StbImageSharp, Version=2.30.15.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StbImageSharp.2.30.15\lib\net471\StbImageSharp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -85,6 +89,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="BasePainting.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
