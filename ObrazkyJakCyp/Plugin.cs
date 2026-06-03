@@ -1,20 +1,61 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Reflection;
+using System.Collections.Generic;
 
 using BepInEx;
 using BepInEx.Logging;
+
 using UnityEngine;
+
+using StbImageSharp;
 
 namespace ObrazkyJakCyp
 {
     [BepInPlugin("CecekMan.ObrazkyJakCyp", "ObrazkyJakCyp", "1.0.0")]
     public class Plugin : BaseUnityPlugin
     {
+        private const int IMAGE_BLOCK_LEN = 64;
+
+        private static System.Random _rnd = new System.Random();
         public static ManualLogSource logger { get; private set; }
         public static new PluginConfig Config { get; private set; } = null;
         internal static bool IsInitialized { get; private set; } = false;
-        
+
+        IEnumerable<string> GetImage()
+        {
+            var dir = Config.Directory;
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+
+            List<string> files = new List<string>();
+            Stack<string> folders = new Stack<string>();
+            folders.Push(dir);
+
+            while (folders.Count > 0)
+            {
+                var curr = folders.Pop();
+                foreach (var fold in Directory.GetDirectories(curr))
+                    folders.Push(fold);
+
+                foreach (var file in Directory.GetFiles(curr))
+                    files.Add(file);
+            }
+
+            while (files.Count > 0)
+            {
+                int idx = files.Count == 1 ? 0 : _rnd.Next(files.Count);
+                string[] blck = new string[IMAGE_BLOCK_LEN];
+                for (int i = 0; i < IMAGE_BLOCK_LEN; i++)
+                    blck[i] = files[(idx + i) % files.Count];
+
+                int idx2 = _rnd.Next(IMAGE_BLOCK_LEN);
+                yield return blck[idx2];
+                files.RemoveAt((idx + idx2) % files.Count);
+            }
+            yield return null;
+        }
 
         void Awake()
         {
@@ -45,23 +86,23 @@ namespace ObrazkyJakCyp
                 }
             }
 
-            var dir = Path.GetFullPath(Path.Combine(Paths.BepInExRootPath, "Paintings"));
-            if (!Directory.Exists(dir))
-                Directory.CreateDirectory(dir);
-            else foreach (var imgPath in Directory.GetFiles(dir))
+            new Thread(() =>
             {
-                // Perform image validation
-                try
+                int maxVal = Config.MaxImages;
+                foreach (var img in GetImage())
                 {
-                    var imgData = File.ReadAllBytes(imgPath);
-                    var tex = new Texture2D(1, 1);
-                    if (!tex.LoadImage(imgData))
-                        throw new Exception();
+                    if (img == null || (maxVal != -1 && maxVal <= Globals.LoadedImages.Count))
+                        break;
 
-                    GameObject.DestroyImmediate(tex);
-                    Globals.LoadedImages[imgPath] = null;
-                } catch (Exception _) { Logger.LogError($"Painting: '{Path.GetFileName(imgPath)}' is not a valid image file!"); }
-            }
+                    // Validate image
+                    using (var file = File.OpenRead(img))
+                        if (ImageInfo.FromStream(file) != null)
+                            Globals.LoadedImages[img] = null;
+                        else Logger.LogError($"Painting: '{Path.GetFileName(img)}' is not a valid image file!");
+                }
+
+                Logger.LogInfo($"Loaded {Globals.LoadedImages.Count} images!");
+            }).Start();
 
             (new HarmonyLib.Harmony("CecekMan.ObrazkyJakCyp")).PatchAll();
 
