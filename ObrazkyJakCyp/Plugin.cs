@@ -13,7 +13,7 @@ using StbImageSharp;
 
 namespace ObrazkyJakCyp
 {
-    [BepInPlugin("CecekMan.ObrazkyJakCyp", "ObrazkyJakCyp", "1.0.0")]
+    [BepInPlugin("CecekMan.ObrazkyJakCyp", "ObrazkyJakCyp", "1.0.3")]
     public class Plugin : BaseUnityPlugin
     {
         private const int IMAGE_BLOCK_LEN = 64;
