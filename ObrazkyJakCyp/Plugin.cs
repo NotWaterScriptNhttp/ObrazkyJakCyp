@@ -42,7 +42,10 @@ namespace ObrazkyJakCyp
                     files.Add(file);
             }
 
-            while (files.Count > 0)
+            if (files.Count <= Config.MaxImages)
+                foreach (var file in files)
+                    yield return file;
+            else while (files.Count > 0)
             {
                 int idx = files.Count == 1 ? 0 : Globals.GRandom.Next(files.Count);
                 string[] blck = new string[IMAGE_BLOCK_LEN];
@@ -53,6 +56,7 @@ namespace ObrazkyJakCyp
                 yield return blck[idx2];
                 files.RemoveAt((idx + idx2) % files.Count);
             }
+
             yield return null;
         }
 
