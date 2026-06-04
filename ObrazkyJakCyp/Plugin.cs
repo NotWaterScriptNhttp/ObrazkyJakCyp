@@ -18,7 +18,6 @@ namespace ObrazkyJakCyp
     {
         private const int IMAGE_BLOCK_LEN = 64;
 
-        private static System.Random _rnd = new System.Random();
         public static ManualLogSource logger { get; private set; }
         public static new PluginConfig Config { get; private set; } = null;
         internal static bool IsInitialized { get; private set; } = false;
@@ -45,12 +44,12 @@ namespace ObrazkyJakCyp
 
             while (files.Count > 0)
             {
-                int idx = files.Count == 1 ? 0 : _rnd.Next(files.Count);
+                int idx = files.Count == 1 ? 0 : Globals.GRandom.Next(files.Count);
                 string[] blck = new string[IMAGE_BLOCK_LEN];
                 for (int i = 0; i < IMAGE_BLOCK_LEN; i++)
                     blck[i] = files[(idx + i) % files.Count];
 
-                int idx2 = _rnd.Next(IMAGE_BLOCK_LEN);
+                int idx2 = Globals.GRandom.Next(IMAGE_BLOCK_LEN);
                 yield return blck[idx2];
                 files.RemoveAt((idx + idx2) % files.Count);
             }
