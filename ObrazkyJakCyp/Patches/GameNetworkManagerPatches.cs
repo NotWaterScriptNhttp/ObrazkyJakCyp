@@ -14,7 +14,7 @@ namespace ObrazkyJakCyp.Patches
             if (!Plugin.IsInitialized)
                 return;
 
-            Globals.PaintingCache.Clear();
+            Globals.Paintings.Clear();
         }
     }
 }

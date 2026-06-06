@@ -9,8 +9,10 @@ namespace ObrazkyJakCyp
     {
         public static System.Random GRandom = new System.Random();
 
-        public static Texture2D PaintingTemplate = null;
-        public static Dictionary<string, Texture2D> LoadedImages = new Dictionary<string, Texture2D>();
-        public static Dictionary<int, Material> PaintingCache = new Dictionary<int, Material>();
+        public static AssetBundle Bundle = null;
+        public static Shader PaintingShader = null;
+
+        public static List<string> ValidImages = new List<string>();
+        public static HashSet<int> Paintings = new HashSet<int>();
     }
 }

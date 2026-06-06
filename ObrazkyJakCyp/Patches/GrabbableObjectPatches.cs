@@ -14,7 +14,7 @@ namespace ObrazkyJakCyp.Patches
             if (!Plugin.IsInitialized || !__instance.IsPainting())
                 return;
 
-            Utils.ApplyTextureToPainting(__instance);
+            Plugin.ChangePainting(__instance);
         }
     }
 }

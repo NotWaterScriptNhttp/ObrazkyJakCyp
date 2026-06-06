@@ -22,7 +22,7 @@ namespace ObrazkyJakCyp.Patches
                     if (!obj.IsPainting())
                         continue;
 
-                    Utils.ApplyTextureToPainting(obj);
+                    Plugin.ChangePainting(obj);
                 }
         }
 

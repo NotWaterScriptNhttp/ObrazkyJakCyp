@@ -10,10 +10,11 @@ using BepInEx.Logging;
 using UnityEngine;
 
 using StbImageSharp;
+using ObrazkyJakCyp.Components;
 
 namespace ObrazkyJakCyp
 {
-    [BepInPlugin("CecekMan.ObrazkyJakCyp", "ObrazkyJakCyp", "1.0.3")]
+    [BepInPlugin("CecekMan.ObrazkyJakCyp", "ObrazkyJakCyp", "1.1.0")]
     public class Plugin : BaseUnityPlugin
     {
         private const int IMAGE_BLOCK_LEN = 64;
@@ -22,6 +23,23 @@ namespace ObrazkyJakCyp
         public static new PluginConfig Config { get; private set; } = null;
         internal static bool IsInitialized { get; private set; } = false;
 
+        void GetResource(string name, Action<MemoryStream> then)
+        {
+            using (var res = Assembly.GetExecutingAssembly().GetManifestResourceStream("ObrazkyJakCyp." + name))
+            {
+                if (res == null)
+                {
+                    Logger.LogError($"Failed to find {name}!");
+                    return;
+                }
+
+                using (var ms = new MemoryStream())
+                {
+                    res.CopyTo(ms);
+                    then(ms);
+                }
+            }
+        }
         IEnumerable<string> GetImage()
         {
             var dir = Config.Directory;
@@ -62,54 +80,81 @@ namespace ObrazkyJakCyp
 
         void Awake()
         {
-            if (IsInitialized)
+            try
+            {
+                if (IsInitialized)
+                    return;
+
+                logger = Logger;
+                Config = new PluginConfig(base.Config);
+
+                // Load asset bundle
+                if (Globals.Bundle == null)
+                    GetResource("Bundle.unity3d", (ms) =>
+                    {
+                        Globals.Bundle = AssetBundle.LoadFromStream(ms);
+                        var assets = Globals.Bundle.LoadAllAssets();
+                        foreach (var ass in assets)
+                            logger.LogWarning(ass);
+                    });
+
+                if (Globals.Bundle != null && Globals.PaintingShader == null)
+                    Globals.PaintingShader = Globals.Bundle.LoadAsset<Shader>("PaintingShader");
+
+                new Thread(() =>
+                {
+                    int maxVal = Config.MaxImages;
+                    foreach (var img in GetImage())
+                    {
+                        if (img == null || (maxVal != -1 && maxVal <= Globals.ValidImages.Count))
+                            break;
+
+                        // Validate image
+                        using (var file = File.OpenRead(img))
+                            if (ImageInfo.FromStream(file) != null)
+                                Globals.ValidImages.Add(img);
+                            else Logger.LogError($"Painting: '{Path.GetFileName(img)}' is not a valid image file!");
+                    }
+
+                    ContentLoader._CurrIdx = Globals.GRandom.Next(Globals.ValidImages.Count);
+                    Logger.LogInfo($"Loaded {Globals.ValidImages.Count} images!");
+                }).Start();
+
+                (new HarmonyLib.Harmony("CecekMan.ObrazkyJakCyp")).PatchAll();
+
+                IsInitialized = true;
+            } catch (Exception e)
+            {
+                logger.LogError(e);
+            }
+        }
+
+        public static void ChangePainting(GrabbableObject obj)
+        {
+            if (!Globals.Paintings.Add(obj.GetInstanceID()))
                 return;
 
-            logger = Logger;
-            Config = new PluginConfig(base.Config);
-
-            // Load painting template
-            if (Globals.PaintingTemplate == null)
+            var content = ContentLoader.GetNextContent();
+            if (content == null)
             {
-                var asm = Assembly.GetExecutingAssembly();
-                using (var res = asm.GetManifestResourceStream("ObrazkyJakCyp.BasePainting.png"))
-                {
-                    if (res == null)
-                    {
-                        Logger.LogError("Failed to find BasePainting.png!");
-                        return;
-                    }
-
-                    using (var ms = new MemoryStream())
-                    {
-                        res.CopyTo(ms);
-                        Globals.PaintingTemplate = new Texture2D(1, 1);
-                        Globals.PaintingTemplate.LoadImage(ms.ToArray());
-                    }
-                }
+                logger.LogError("Failed to get an image for painting!");
+                return;
             }
 
-            new Thread(() =>
+            var mat = new Material(obj.itemProperties.materialVariants[0]);
+            mat.shader = Globals.PaintingShader;
+            mat.SetTexture("_Images", content.Frames);
+            mat.SetInt("_Index", 0);
+            mat.SetInt("_Rotate", content.IsWide ? 1 : 0);
+            mat.SetInt("_IsTexture", content.IsRawTexture ? 1 : 0);
+
+            obj.gameObject.GetComponent<MeshRenderer>().material = mat;
+            
+            if (content.Delays != null)
             {
-                int maxVal = Config.MaxImages;
-                foreach (var img in GetImage())
-                {
-                    if (img == null || (maxVal != -1 && maxVal <= Globals.LoadedImages.Count))
-                        break;
-
-                    // Validate image
-                    using (var file = File.OpenRead(img))
-                        if (ImageInfo.FromStream(file) != null)
-                            Globals.LoadedImages[img] = null;
-                        else Logger.LogError($"Painting: '{Path.GetFileName(img)}' is not a valid image file!");
-                }
-
-                Logger.LogInfo($"Loaded {Globals.LoadedImages.Count} images!");
-            }).Start();
-
-            (new HarmonyLib.Harmony("CecekMan.ObrazkyJakCyp")).PatchAll();
-
-            IsInitialized = true;
+                var anim = obj.gameObject.AddComponent<PaintingAnimation>();
+                anim.Content = content;
+            }
         }
     }
 }
