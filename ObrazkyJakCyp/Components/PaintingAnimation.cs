@@ -27,7 +27,6 @@ namespace ObrazkyJakCyp.Components
                 Timer -= delay;
                 Frame = (Frame + 1) % Content.FramesCnt;
                 Obj.GetComponent<MeshRenderer>().material.SetInt("_Index", Frame);
-                Plugin.logger.LogInfo($"frame {Frame}/{Content.FramesCnt}");
             }
         }
     }
