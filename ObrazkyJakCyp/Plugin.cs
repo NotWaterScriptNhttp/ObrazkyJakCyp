@@ -14,7 +14,7 @@ using ObrazkyJakCyp.Components;
 
 namespace ObrazkyJakCyp
 {
-    [BepInPlugin("CecekMan.ObrazkyJakCyp", "ObrazkyJakCyp", "1.1.0")]
+    [BepInPlugin("CecekMan.ObrazkyJakCyp", "ObrazkyJakCyp", "1.1.2")]
     public class Plugin : BaseUnityPlugin
     {
         private const int IMAGE_BLOCK_LEN = 64;
