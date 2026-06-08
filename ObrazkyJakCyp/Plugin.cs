@@ -93,6 +93,7 @@ namespace ObrazkyJakCyp
                     GetResource("Bundle.unity3d", (ms) =>
                     {
                         Globals.Bundle = AssetBundle.LoadFromStream(ms);
+                        Globals.Bundle.LoadAllAssets();
                     });
 
                 if (Globals.Bundle != null && Globals.PaintingShader == null)
