@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 using BepInEx;
 using BepInEx.Logging;
@@ -10,6 +11,7 @@ using BepInEx.Logging;
 using UnityEngine;
 
 using StbImageSharp;
+
 using ObrazkyJakCyp.Components;
 
 namespace ObrazkyJakCyp
@@ -127,32 +129,17 @@ namespace ObrazkyJakCyp
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ChangePainting(GrabbableObject obj)
         {
-            if (!Globals.Paintings.Add(obj.GetInstanceID()))
-                return;
-
-            var content = ContentLoader.GetNextContent();
-            if (content == null)
+            int id = obj.GetInstanceID();
+            if (!Globals.Paintings.TryGetValue(id, out var painting))
             {
-                logger.LogError("Failed to get an image for painting!");
-                return;
+                painting = obj.gameObject.AddComponent<CustomPainting>();
+                Globals.Paintings[id] = painting;
             }
 
-            var mat = new Material(obj.itemProperties.materialVariants[0]);
-            mat.shader = Globals.PaintingShader;
-            mat.SetTexture("_Images", content.Frames);
-            mat.SetInt("_Index", 0);
-            mat.SetInt("_Rotate", content.IsWide ? 1 : 0);
-            mat.SetInt("_IsTexture", content.IsRawTexture ? 1 : 0);
-
-            obj.gameObject.GetComponent<MeshRenderer>().material = mat;
-            
-            if (content.Delays != null)
-            {
-                var anim = obj.gameObject.AddComponent<PaintingAnimation>();
-                anim.Content = content;
-            }
+            painting.SetupPainting();
         }
     }
 }

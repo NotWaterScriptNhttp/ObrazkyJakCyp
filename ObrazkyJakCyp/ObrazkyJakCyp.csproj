@@ -81,7 +81,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Components\PaintingAnimation.cs" />
+    <Compile Include="Components\CustomPainting.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Globals.cs" />
     <Compile Include="ContentLoader.cs" />
