@@ -62,7 +62,7 @@ namespace ObrazkyJakCyp
                     files.Add(file);
             }
 
-            if (!Config.ForceRandomize && files.Count <= Config.MaxImages)
+            if (Config.MaxImages > 0 && !Config.ForceRandomize && files.Count <= Config.MaxImages)
                 foreach (var file in files)
                     yield return file;
             else while (files.Count > 0)
